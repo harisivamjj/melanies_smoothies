@@ -5,7 +5,7 @@ from snowflake.snowpark.session import Session
 import pandas as pd
 
 # Write directly to the app
-st.title(":cup_with_straw: Customize your Smoothie! :balloon:")
+st.title("🥤 Customize your Smoothie! 🎈")
 st.write("Choose the fruits you want in your smoothie")
 
 name_on_order = st.text_input('Name on smoothie')
@@ -21,16 +21,26 @@ if session:
 else:
     st.error("Failed to establish Snowflake session")
 
-# Fetch the fruit options from Snowflake
+# Fetch and display column names to debug the issue
 try:
-    my_dataframe = session.table("smoothies.public.fruit_options").select(col('Fruit_name'), col('SEARCH_ON'))
-    st.write("Data fetched successfully from Snowflake")
+    fruit_options_table = session.table("smoothies.public.fruit_options")
+    columns = fruit_options_table.schema().names
+    st.write("Columns in the fruit_options table:", columns)
     
-    # Convert to pandas DataFrame
-    pd_df = my_dataframe.to_pandas()
-    st.write("Converted Snowflake DataFrame to pandas DataFrame")
+    # Check if 'SEARCH_ON' and 'Fruit_name' exist in the columns
+    if 'SEARCH_ON' in columns and 'Fruit_name' in columns:
+        my_dataframe = fruit_options_table.select(col('Fruit_name'), col('SEARCH_ON'))
+        st.write("Data fetched successfully from Snowflake")
+        
+        # Convert to pandas DataFrame
+        pd_df = my_dataframe.to_pandas()
+        st.write("Converted Snowflake DataFrame to pandas DataFrame")
+    else:
+        st.error("The required columns are not present in the table.")
+        st.stop()
 except Exception as e:
     st.error(f"Error fetching data from Snowflake: {e}")
+    st.stop()
 
 # Display the DataFrame
 st.dataframe(pd_df)
