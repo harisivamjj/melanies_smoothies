@@ -12,7 +12,7 @@ name_on_order = st.text_input('Name on smoothie')
 st.write('The name on the smoothie will be ', name_on_order)
 
 # Establish Snowflake connection
-cnx = st.experimental_connection("snowflake")
+cnx = st.connection("snowflake")
 session = cnx.session()
 
 # Verify the session is established
@@ -20,11 +20,12 @@ if session:
     st.write("Snowflake session established successfully!")
 else:
     st.error("Failed to establish Snowflake session")
+    st.stop()
 
 # Fetch and display column names to debug the issue
 try:
     fruit_options_table = session.table("smoothies.public.fruit_options")
-    columns = fruit_options_table.schema().names
+    columns = [col.name for col in fruit_options_table.schema.fields]
     st.write("Columns in the fruit_options table:", columns)
     
     # Check if 'SEARCH_ON' and 'Fruit_name' exist in the columns
